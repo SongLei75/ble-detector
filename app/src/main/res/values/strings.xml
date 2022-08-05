@@ -1,0 +1,14 @@
+<resources>
+    <string name="label">WM HW DETECTOR</string>
+    <string name="app_name">wm_detector_client</string>
+    <string name="wm_hw_detector">WM HW Detector</string>
+    <string name="openBlueTooth">打开蓝牙</string>
+    <string name="closeBlueTooth">关闭蓝牙</string>
+    <string name="listBlueToothDevices">显示设备</string>
+    <string name="disconnect">断开连接</string>
+    <string name="connectionTest">连接测试</string>
+    <string name="dataView">数据详情</string>
+    <string name="connectStatus">已连接</string>
+    <string name="bonded_devices_list">已配对设备列表:</string>
+    <string name="unbonded_devices_list">未配对设备列表:</string>
+</resources>
