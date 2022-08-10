@@ -1,7 +1,7 @@
 package com.example.wm_detector_client
 
 import android.Manifest
-import android.app.ActionBar
+import android.app.ActivityManager
 import android.bluetooth.*
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE
@@ -13,16 +13,13 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.*
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.ListView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 private const val LOG_TAG = "wm_detector_client_debug"
 private const val MY_PERMISSION_REQUEST_CODE = 0
@@ -34,6 +31,11 @@ class MainActivity : AppCompatActivity() {
         UNPAIRED,
     }
 
+    enum class PageTitle{
+        HOME,
+        DATA_SUMMARY,
+    }
+
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var bluetoothGatt: BluetoothGatt
     private lateinit var bluetoothWRUUID: UUID
@@ -41,10 +43,20 @@ class MainActivity : AppCompatActivity() {
     private var bluetoothConnState = false
     private val unpairedDevicesList = mutableListOf<BluetoothDevice>()
     private val pairedDevicesList = mutableListOf<BluetoothDevice>()
+
     // 静态常量
     companion object {
         const val TOAST_KEY = "send toast msg"
         const val CONN_KEY = "ble device connection state"
+    }
+
+    //判断当前界面显示的是哪个Activity
+    fun getTopActivity(context: Context): String {
+        val am = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val cn = am.getRunningTasks(1)[0].topActivity
+        Log.d("测试", "pkg:" + cn!!.packageName) //包名
+        Log.d("测试", "cls:" + cn.className) //包名加类名
+        return cn.className
     }
 
     fun bluetoothDeviceListView(viewType: String) {
@@ -106,10 +118,13 @@ class MainActivity : AppCompatActivity() {
 
             messageContent = msg.data.getString(CONN_KEY)
             if (messageContent != null) {
-                bluetoothDeviceListView(messageContent)
-                bluetoothDeviceDataView(messageContent)
-                bluetoothDeviceTestView(messageContent)
-                bluetoothDeviceConnStatusRefresh(messageContent)
+//                if (getTopActivity(this) != null) {
+//                    Log.d(LOG_TAG, getTopActivity(this))
+                    bluetoothDeviceListView(messageContent)
+                    bluetoothDeviceDataView(messageContent)
+                    bluetoothDeviceTestView(messageContent)
+                    bluetoothDeviceConnStatusRefresh(messageContent)
+//                }
             }
         }
     }
@@ -346,6 +361,8 @@ class MainActivity : AppCompatActivity() {
         if (!bluetoothConnState) return
 
         setContentView(R.layout.data_view_main)
+
+        blueToothPageUpdate(PageTitle.DATA_SUMMARY)
         Log.d(LOG_TAG, "reserved")
     }
 
@@ -416,7 +433,7 @@ class MainActivity : AppCompatActivity() {
                     newState: Int,
                 ) {
                     if (status != BluetoothGatt.GATT_SUCCESS) {
-                        Log.d(LOG_TAG, "ble connection state: $status")
+                        Log.d(LOG_TAG, "ble connection status: $status, state: $newState")
                         return
                     }
 
@@ -782,22 +799,34 @@ class MainActivity : AppCompatActivity() {
         registerBluetoothDeviceListClickListen()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        fun setCustomActionBar() {
-            val lp = ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT, Gravity.CENTER);
-            val mActionBarView = LayoutInflater.from(this).inflate(R.layout.actionbar, null);
-            val actionBar = actionBar;
-            actionBar?.setCustomView(mActionBarView, lp);
-            actionBar?.displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM;
-            actionBar?.setDisplayShowCustomEnabled(true);
-            actionBar?.setDisplayShowHomeEnabled(false);
-            actionBar?.setDisplayShowTitleEnabled(false);
+    private fun blueToothPageUpdate(pageTitle: PageTitle) {
+        when (pageTitle) {
+            PageTitle.HOME->{
+                val titleBar = findViewById<View>(R.id.titleBar_home)
+                val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
+                val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
+                titleBarText.text = "首页"
+                titleBarLeftBtn.visibility = View.GONE
+            }
+            PageTitle.DATA_SUMMARY->{
+                val titleBar = findViewById<View>(R.id.titleBar_dataSummary)
+                val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
+                val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
+                titleBarText.text = "数据详情"
+                titleBarLeftBtn.text = "返回"
+                titleBarLeftBtn.setTextColor(Color.parseColor("#000000"))
+                titleBarLeftBtn.setOnClickListener {
+                    blueToothPageUpdate(PageTitle.HOME)
+                }
+            }
         }
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        // setCustomActionBar()
 
+        blueToothPageUpdate(PageTitle.HOME)
         requestBlueToothPermission()
         bluetoothAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
         if (ActivityCompat.checkSelfPermission(this,

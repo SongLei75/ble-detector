@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <include layout="@layout/title_bar" android:id="@+id/titleBar_home" />
+
     <Button
         android:id="@+id/bt_openBlueTooth"
         android:layout_width="wrap_content"
