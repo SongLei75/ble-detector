@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-private const val LOG_TAG = "wm_detector_client_debug"
+private const val LOG_TAG = "wm_detector_client_debug_home"
 private const val MY_PERMISSION_REQUEST_CODE = 0
 private val UUID_SERVER = UUID.fromString("00000001-0000-1000-8000-00805F9B34FB")
 
@@ -97,6 +97,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun bluetoothDeviceDisconnectView(viewType: String) {
+        val dataView = findViewById<View>(R.id.bt_disconnect)
+        if (viewType == "disconnect") {
+            dataView.setBackgroundColor(Color.parseColor("#636363"))
+        } else if (viewType == "connect") {
+            dataView.setBackgroundColor(Color.parseColor("#3DD239"))
+        }
+    }
+
     fun bluetoothDeviceConnStatusRefresh(viewType: String) {
         val dataView = findViewById<View>(R.id.connectStatus)
         if (viewType == "disconnect") {
@@ -118,13 +127,11 @@ class MainActivity : AppCompatActivity() {
 
             messageContent = msg.data.getString(CONN_KEY)
             if (messageContent != null) {
-//                if (getTopActivity(this) != null) {
-//                    Log.d(LOG_TAG, getTopActivity(this))
-                    bluetoothDeviceListView(messageContent)
-                    bluetoothDeviceDataView(messageContent)
-                    bluetoothDeviceTestView(messageContent)
-                    bluetoothDeviceConnStatusRefresh(messageContent)
-//                }
+                bluetoothDeviceListView(messageContent)
+                bluetoothDeviceDataView(messageContent)
+                bluetoothDeviceTestView(messageContent)
+                bluetoothDeviceDisconnectView(messageContent)
+                bluetoothDeviceConnStatusRefresh(messageContent)
             }
         }
     }
@@ -352,6 +359,7 @@ class MainActivity : AppCompatActivity() {
         ) {
             return
         }
+        if (!bluetoothConnState) return
 
         bluetoothGatt.disconnect()
     }
@@ -359,8 +367,6 @@ class MainActivity : AppCompatActivity() {
     fun changeDataView(view: View) {
         if (view.id != R.id.bt_dataView) return
         if (!bluetoothConnState) return
-
-        setContentView(R.layout.data_view_main)
 
         blueToothPageUpdate(PageTitle.DATA_SUMMARY)
         Log.d(LOG_TAG, "reserved")
@@ -805,19 +811,13 @@ class MainActivity : AppCompatActivity() {
                 val titleBar = findViewById<View>(R.id.titleBar_home)
                 val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
                 val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
-                titleBarText.text = "首页"
+                titleBarText.text = "设备"
                 titleBarLeftBtn.visibility = View.GONE
             }
             PageTitle.DATA_SUMMARY->{
-                val titleBar = findViewById<View>(R.id.titleBar_dataSummary)
-                val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
-                val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
-                titleBarText.text = "数据详情"
-                titleBarLeftBtn.text = "返回"
-                titleBarLeftBtn.setTextColor(Color.parseColor("#000000"))
-                titleBarLeftBtn.setOnClickListener {
-                    blueToothPageUpdate(PageTitle.HOME)
-                }
+                val intent = Intent()
+                intent.setClass(this@MainActivity, MainActivity2::class.java)
+                startActivity(intent)
             }
         }
     }
@@ -825,6 +825,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        Log.d(LOG_TAG, "MainActivity onCreate")
 
         blueToothPageUpdate(PageTitle.HOME)
         requestBlueToothPermission()
@@ -837,5 +839,20 @@ class MainActivity : AppCompatActivity() {
         bluetoothAdapter.name = "detector_client"
 
         registerBluetoothDeviceListClickHandle()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(LOG_TAG, "MainActivity onDestroy")
+    }
+
+    override fun finish() {
+        super.finish()
+        Log.d(LOG_TAG, "MainActivity finish")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(LOG_TAG, "MainActivity onResume")
     }
 }

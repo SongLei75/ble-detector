@@ -32,11 +32,11 @@
         android:textSize="20sp"
         android:backgroundTint="#3DD239"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.85"
+        app:layout_constraintHorizontal_bias="0.15"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.08" />
+        app:layout_constraintVertical_bias="0.16" />
 
     <Button
         android:id="@+id/bt_listDevices"
@@ -51,7 +51,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.16" />
+        app:layout_constraintVertical_bias="0.24" />
 
     <Button
         android:id="@+id/bt_disconnect"
@@ -60,7 +60,7 @@
         android:onClick="disconnectBlueToothDevices"
         android:text="@string/disconnect"
         android:textSize="20sp"
-        android:backgroundTint="#3DD239"
+        android:backgroundTint="#636363"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.85"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -77,11 +77,11 @@
         android:textSize="20sp"
         android:backgroundTint="#636363"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.15"
+        app:layout_constraintHorizontal_bias="0.85"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.24" />
+        app:layout_constraintVertical_bias="0.08" />
 
     <Button
         android:id="@+id/bt_dataView"
