@@ -1,6 +1,7 @@
 package com.example.wm_detector_client
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.bluetooth.*
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
@@ -16,16 +17,16 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 private const val LOG_TAG = "wm_detector_client_debug_home"
 private const val MY_PERMISSION_REQUEST_CODE = 0
 private val UUID_SERVER = UUID.fromString("00000001-0000-1000-8000-00805F9B34FB")
 
-class MainActivity : AppCompatActivity() {
+class ActivityHome : AppCompatActivity() {
     enum class BondedState{
         PAIRED,
         UNPAIRED,
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     enum class PageTitle{
         HOME,
         DATA_SUMMARY,
+        INFO,
     }
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
@@ -122,7 +124,7 @@ class MainActivity : AppCompatActivity() {
 
             var messageContent = msg.data.getString(TOAST_KEY)
             if (messageContent != null) {
-                Toast.makeText(this@MainActivity, messageContent, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ActivityHome, messageContent, Toast.LENGTH_SHORT).show()
             }
 
             messageContent = msg.data.getString(CONN_KEY)
@@ -160,7 +162,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addNewDevice(bluetoothDevice: BluetoothDevice) {
+    fun addBlueToothDevice(bluetoothDevice: BluetoothDevice) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -372,6 +374,12 @@ class MainActivity : AppCompatActivity() {
         Log.d(LOG_TAG, "reserved")
     }
 
+    fun blueToothSoftWareInfo(view: View) {
+        if (view.id != R.id.img_softwareInfo) return
+
+        blueToothPageUpdate(PageTitle.INFO)
+    }
+
     private fun bluetoothDeviceListClickEventHandle(device: BluetoothDevice)
     {
         fun bluetoothDeviceListClickEventPairing(device: BluetoothDevice) {
@@ -511,7 +519,7 @@ class MainActivity : AppCompatActivity() {
                                     val descriptors = characteristic.descriptors
                                     Log.d(LOG_TAG, "descriptors num: " + descriptors.size)
                                     for (descriptor in descriptors) {
-                                        if (ActivityCompat.checkSelfPermission(this@MainActivity,
+                                        if (ActivityCompat.checkSelfPermission(this@ActivityHome,
                                                 Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                                         ) {
                                             break
@@ -525,7 +533,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    if (ActivityCompat.checkSelfPermission(this@MainActivity,
+                    if (ActivityCompat.checkSelfPermission(this@ActivityHome,
                             Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                     ) {
                         return
@@ -753,7 +761,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                         if ((device != null) && !device.name.isNullOrEmpty()) {
-                            addNewDevice(device)
+                            addBlueToothDevice(device)
                             Log.d(LOG_TAG, "ACTION_FOUND ${device.name} ${device.address}")
                         }
                     }
@@ -805,6 +813,59 @@ class MainActivity : AppCompatActivity() {
         registerBluetoothDeviceListClickListen()
     }
 
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    private fun blueToothHomePageInit() {
+        fun blueToothHomePageSearchDeviceInit() {
+            val swSearchDevice = findViewById<Switch>(R.id.sw_searchDevice)
+
+            swSearchDevice.setOnClickListener {
+                if (swSearchDevice.isChecked) {
+                    listBlueToothDevices(findViewById(R.id.bt_listDevices))
+                } else {
+                    if (ActivityCompat.checkSelfPermission(this,
+                            Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        if (bluetoothAdapter.isDiscovering) {
+                            bluetoothAdapter.cancelDiscovery()
+                        }
+                    }
+                }
+            }
+            swSearchDevice.isChecked = false
+        }
+
+        fun blueToothHomePageDemoDeviceInit() {
+            val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
+            val demoDeviceView = findViewById<TextView>(R.id.demoBlueToothDevice)
+
+            swShowDemo.setOnClickListener {
+                if (swShowDemo.isChecked) {
+                    demoDeviceView.visibility = View.VISIBLE
+                } else {
+                    demoDeviceView.visibility = View.GONE
+                }
+            }
+            swShowDemo.isChecked = true
+        }
+
+        fun blueToothHomePageDeviceListInit() {
+            val viewBlueToothDevices = findViewById<ConstraintLayout>(R.id.blueToothDevices)
+            val viewHomePageBottomItem = findViewById<ConstraintLayout>(R.id.homePageBottomItem)
+            val listUnbondedDevice = findViewById<ListView>(R.id.unbondedBlueToothDeviceList)
+
+            viewBlueToothDevices.post {
+                viewBlueToothDevices.maxHeight = viewHomePageBottomItem.top - viewBlueToothDevices.top
+            }
+            listUnbondedDevice.post {
+
+            }
+        }
+
+        blueToothHomePageSearchDeviceInit()
+        blueToothHomePageDemoDeviceInit()
+        blueToothHomePageDeviceListInit()
+    }
+
     private fun blueToothPageUpdate(pageTitle: PageTitle) {
         when (pageTitle) {
             PageTitle.HOME->{
@@ -816,7 +877,12 @@ class MainActivity : AppCompatActivity() {
             }
             PageTitle.DATA_SUMMARY->{
                 val intent = Intent()
-                intent.setClass(this@MainActivity, MainActivity2::class.java)
+                intent.setClass(this@ActivityHome, MainActivity2::class.java)
+                startActivity(intent)
+            }
+            PageTitle.INFO->{
+                val intent = Intent()
+                intent.setClass(this@ActivityHome, ActivityInfo::class.java)
                 startActivity(intent)
             }
         }
@@ -824,10 +890,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_home)
 
         Log.d(LOG_TAG, "MainActivity onCreate")
 
+        blueToothHomePageInit()
         blueToothPageUpdate(PageTitle.HOME)
         requestBlueToothPermission()
         bluetoothAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter

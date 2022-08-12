@@ -7,37 +7,36 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+private const val LOG_TAG = "wm_detector_client_debug_info"
 
-private const val LOG_TAG = "wm_detector_client_debug_dataView"
-
-class MainActivity2 : AppCompatActivity() {
+class ActivityInfo : AppCompatActivity() {
     private fun blueToothPageUpdate(pageTitle: ActivityHome.PageTitle) {
         when (pageTitle) {
             ActivityHome.PageTitle.HOME->{
                 finish()
             }
-            ActivityHome.PageTitle.DATA_SUMMARY->{
-                val titleBar = findViewById<View>(R.id.titleBar_dataSummary)
+            ActivityHome.PageTitle.INFO->{
+                val titleBar = findViewById<View>(R.id.titleBar_info)
                 val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
                 val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
-                titleBarText.text = "数据详情"
+                titleBarText.text = "软件详情"
                 titleBarLeftBtn.text = "返回"
                 titleBarLeftBtn.setTextColor(Color.parseColor("#000000"))
                 titleBarLeftBtn.setOnClickListener {
                     blueToothPageUpdate(ActivityHome.PageTitle.HOME)
                 }
             }
-            else->{}
+            else -> {}
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main2)
+        setContentView(R.layout.activity_info)
 
         Log.d(LOG_TAG, "MainActivity2 onCreate")
 
-        blueToothPageUpdate(ActivityHome.PageTitle.DATA_SUMMARY)
+        blueToothPageUpdate(ActivityHome.PageTitle.INFO)
     }
 
     override fun onDestroy() {

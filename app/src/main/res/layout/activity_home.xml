@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ActivityHome">
+
+    <include layout="@layout/title_bar" android:id="@+id/titleBar_home" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/blueToothButtons"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toBottomOf="@id/titleBar_home" >
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/blueToothButtonsLeft"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="0.2">
+            <Button
+                android:id="@+id/bt_openBlueTooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="openBlueTooth"
+                android:text="@string/openBlueTooth"
+                android:textSize="20sp"
+                android:backgroundTint="#3DD239"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <Button
+                android:id="@+id/bt_closeBlueTooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="closeBlueTooth"
+                android:text="@string/closeBlueTooth"
+                android:textSize="20sp"
+                android:backgroundTint="#3DD239"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/bt_openBlueTooth" />
+            <Button
+                android:id="@+id/bt_listDevices"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="listBlueToothDevices"
+                android:text="@string/listBlueToothDevices"
+                android:textSize="20sp"
+                android:backgroundTint="#3DD239"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/bt_closeBlueTooth" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/blueToothButtonsRight"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="0.8">
+            <Button
+                android:id="@+id/bt_disconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="disconnectBlueToothDevices"
+                android:text="@string/disconnect"
+                android:textSize="20sp"
+                android:backgroundTint="#636363"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"/>
+            <Button
+                android:id="@+id/bt_connTest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="testBleConnectionState"
+                android:text="@string/connectionTest"
+                android:textSize="20sp"
+                android:backgroundTint="#636363"
+                app:layout_constraintTop_toBottomOf="@id/bt_disconnect"
+                app:layout_constraintLeft_toLeftOf="parent"/>
+            <Button
+                android:id="@+id/bt_dataView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="changeDataView"
+                android:text="@string/dataView"
+                android:textSize="20sp"
+                android:backgroundTint="#636363"
+                app:layout_constraintTop_toBottomOf="@id/bt_connTest"
+                app:layout_constraintLeft_toLeftOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/connectStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connectStatus"
+            android:textSize="20sp"
+            android:textColor="#3DD239"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/blueToothButtonsLeft" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/blueToothDevices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/blueToothButtons" >
+        <TextView
+            android:id="@+id/bondedBlueToothDeviceListText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/bonded_devices_list"
+            android:textSize="20sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent" />
+        <TextView
+            android:id="@+id/demoBlueToothDevice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/demo"
+            android:textColor="@color/black"
+            android:textSize="17sp"
+            android:layout_margin="8sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/bondedBlueToothDeviceListText" />
+        <ListView
+            android:id="@+id/bondedBlueToothDeviceList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/demoBlueToothDevice" />
+        <TextView
+            android:id="@+id/unbondedBlueToothDeviceListText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/unbonded_devices_list"
+            android:textSize="20sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/bondedBlueToothDeviceList" />
+        <ListView
+            android:id="@+id/unbondedBlueToothDeviceList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/unbondedBlueToothDeviceListText" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/homePageBottomItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" >
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/ll_searchDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/ll_showDemo"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" >
+            <Switch
+                android:id="@+id/sw_searchDevice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+            <TextView
+                android:id="@+id/txt_SearchDevice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/searchDevice"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/sw_searchDevice" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDevice" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot1" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot2" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/ll_showDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" >
+            <Switch
+                android:id="@+id/sw_showDemo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+            <TextView
+                android:id="@+id/txt_showDemo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/showDemo"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/sw_showDemo" />
+            <ImageView
+                android:id="@+id/img_softwareInfo"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/info"
+                android:onClick="blueToothSoftWareInfo"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:contentDescription="@string/appInfo" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
