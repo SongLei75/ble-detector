@@ -2,7 +2,6 @@ package com.example.wm_detector_client
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.bluetooth.*
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE
@@ -22,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.*
 
+private const val DEMO_BLE_DEV_NAME = "WM BLE Demo Device"
 private const val LOG_TAG = "wm_detector_client_debug_home"
 private const val MY_PERMISSION_REQUEST_CODE = 0
 private val UUID_SERVER = UUID.fromString("00000001-0000-1000-8000-00805F9B34FB")
@@ -50,15 +50,6 @@ class ActivityHome : AppCompatActivity() {
     companion object {
         const val TOAST_KEY = "send toast msg"
         const val CONN_KEY = "ble device connection state"
-    }
-
-    //判断当前界面显示的是哪个Activity
-    fun getTopActivity(context: Context): String {
-        val am = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        val cn = am.getRunningTasks(1)[0].topActivity
-        Log.d("测试", "pkg:" + cn!!.packageName) //包名
-        Log.d("测试", "cls:" + cn.className) //包名加类名
-        return cn.className
     }
 
     fun bluetoothDeviceListView(viewType: String) {
@@ -151,12 +142,12 @@ class ActivityHome : AppCompatActivity() {
 
         if (listType == BondedState.PAIRED) {
             for (device in pairedDevicesList) deviceNameList.add(device.name)
-            val deviceList = ArrayAdapter(this, android.R.layout.simple_list_item_1,
+            val deviceList = ArrayAdapter(this, R.layout.activity_home_listview,
                 deviceNameList)
             bondedList.adapter = deviceList
         } else {
             for (device in unpairedDevicesList) deviceNameList.add(device.name)
-            val deviceList = ArrayAdapter(this, android.R.layout.simple_list_item_1,
+            val deviceList = ArrayAdapter(this, R.layout.activity_home_listview,
                 deviceNameList)
             unbondedList.adapter = deviceList
         }
@@ -835,17 +826,33 @@ class ActivityHome : AppCompatActivity() {
         }
 
         fun blueToothHomePageDemoDeviceInit() {
+            fun blueToothHomePageDemoDeviceOnClick() {
+                val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
+
+                val bondedList : ListView = findViewById(R.id.bondedBlueToothDeviceList)
+                val deviceNameList = mutableListOf<String>()
+
+                for (device in pairedDevicesList) deviceNameList.add(device.name)
+
+                if (swShowDemo.isChecked) {
+                    deviceNameList.add(DEMO_BLE_DEV_NAME)
+                } else {
+                    deviceNameList.remove(DEMO_BLE_DEV_NAME)
+                }
+                val deviceList = ArrayAdapter(this, R.layout.activity_home_listview,
+                    deviceNameList)
+                bondedList.adapter = deviceList
+            }
+
             val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
-            val demoDeviceView = findViewById<TextView>(R.id.demoBlueToothDevice)
 
             swShowDemo.setOnClickListener {
-                if (swShowDemo.isChecked) {
-                    demoDeviceView.visibility = View.VISIBLE
-                } else {
-                    demoDeviceView.visibility = View.GONE
-                }
+                blueToothHomePageDemoDeviceOnClick()
             }
             swShowDemo.isChecked = true
+            swShowDemo.post {
+                blueToothHomePageDemoDeviceOnClick()
+            }
         }
 
         fun blueToothHomePageDeviceListInit() {
