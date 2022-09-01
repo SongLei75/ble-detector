@@ -1,15 +1,124 @@
 package com.example.wm_detector_client
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
+import android.view.ViewGroup
+import android.widget.*
+import java.util.ArrayList
+
 private const val LOG_TAG = "wm_detector_client_debug_info"
+private const val VERSION_RELEASE = 0
+private const val VERSION_BETA = 1
+private const val VERSION_DEBUG = 2
 
 class ActivityInfo : AppCompatActivity() {
+    private lateinit var versionInstructionAdapter: MessageAdapter
+    private val versionInstructionList = arrayListOf<Version>()
+    object Utility {
+        fun setListViewHeightBasedOnChildren(listView: ListView) {
+            //获取ListView对应的Adapter
+            val listAdapter = listView.adapter
+                ?: // pre-condition
+                return
+            var totalHeight = 0
+            var i = 0
+            val len = listAdapter.count
+            while (i < len) {
+                //listAdapter.getCount()返回数据项的数目
+                val listItem = listAdapter.getView(i, null, listView)
+                listItem.measure(0, 0) //计算子项View 的宽高
+                totalHeight += listItem.measuredHeight //统计所有子项的总高度
+                i++
+            }
+            val params = listView.layoutParams
+            params.height = totalHeight + listView.dividerHeight * (listAdapter.count - 1)
+            //listView.getDividerHeight()获取子项间分隔符占用的高度
+            //params.height最后得到整个ListView完整显示需要的高度
+            listView.layoutParams = params
+        }
+    }
+
+    class Version(val version: String, val type: Int, val context: Context, val detailInfo: Array<String>)
+    class MessageAdapter(private val msgList: ArrayList<Version>, context: Context?) :
+        BaseAdapter() {
+        private val mInflater: LayoutInflater
+
+        override fun getCount(): Int {
+            return msgList.size
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getItemViewType(position: Int): Int {
+            return msgList[position].type
+        }
+
+        override fun getViewTypeCount(): Int {
+            return 1
+        }
+
+        @SuppressLint("InflateParams")
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val view: View
+            val viewHolder: ViewHolder
+
+            if (convertView == null) {
+                view = mInflater.inflate(R.layout.activity_info_listview, null)
+                viewHolder = ViewHolder()
+                viewHolder.version = view.findViewById(R.id.version)
+                viewHolder.instruction = view.findViewById(R.id.detailInfo)
+                view.tag = viewHolder
+            } else {
+                view = convertView
+                viewHolder = view.tag as ViewHolder
+            }
+
+            val detailInfoList = mutableListOf<String>()
+            for (detailInfoItem in msgList[position].detailInfo) {
+                Log.d(LOG_TAG, detailInfoItem)
+                detailInfoList.add(detailInfoItem)
+            }
+            viewHolder.instruction.adapter = ArrayAdapter(msgList[position].context,
+                android.R.layout.simple_list_item_1, detailInfoList)
+            Utility.setListViewHeightBasedOnChildren(viewHolder.instruction)
+
+            when (msgList[position].type) {
+                VERSION_RELEASE -> {
+                    viewHolder.version.text = msgList[position].version
+                }
+                VERSION_DEBUG -> {
+                    viewHolder.version.text = String.format("${msgList[position].version} (DEBUG)")
+                }
+                VERSION_BETA -> {
+                    viewHolder.version.text = String.format("${msgList[position].version} (BETA)")
+                }
+            }
+
+            return view
+        }
+
+        internal class ViewHolder {
+            lateinit var version: TextView
+            lateinit var instruction: ListView
+        }
+
+        init {
+            mInflater = LayoutInflater.from(context)
+        }
+    }
+
     private fun blueToothPageUpdate(pageTitle: ActivityHome.PageTitle) {
         when (pageTitle) {
             ActivityHome.PageTitle.HOME->{
@@ -30,27 +139,44 @@ class ActivityInfo : AppCompatActivity() {
         }
     }
 
+    private fun blueToothVersionInstructionsInit() {
+        val versionInstructionListView = findViewById<ListView>(R.id.versionInstructionsList)
+        versionInstructionAdapter = MessageAdapter(versionInstructionList, this)
+        versionInstructionListView.adapter = versionInstructionAdapter
+
+        val versionInstructions = arrayListOf<Version>(
+            Version("v1.01", VERSION_RELEASE, this, arrayOf("111", "222")),
+            Version("v1.02", VERSION_DEBUG, this, arrayOf("aaa", "bbb")),
+            Version("v1.03", VERSION_BETA, this, arrayOf("ccc", "ddd")),
+        )
+
+        for (versionInstruction in versionInstructions) {
+            versionInstructionList.add(versionInstruction)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_info)
 
-        Log.d(LOG_TAG, "MainActivity2 onCreate")
+        Log.d(LOG_TAG, "ActivityInfo onCreate")
 
         blueToothPageUpdate(ActivityHome.PageTitle.INFO)
+        blueToothVersionInstructionsInit()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(LOG_TAG, "MainActivity2 onDestroy")
+        Log.d(LOG_TAG, "ActivityInfo onDestroy")
     }
 
     override fun finish() {
         super.finish()
-        Log.d(LOG_TAG, "MainActivity2 finish")
+        Log.d(LOG_TAG, "ActivityInfo finish")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(LOG_TAG, "MainActivity2 onResume")
+        Log.d(LOG_TAG, "ActivityInfo onResume")
     }
 }
