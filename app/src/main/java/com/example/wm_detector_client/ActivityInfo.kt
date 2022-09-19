@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.constraintlayout.widget.ConstraintLayout
 import java.util.ArrayList
 
 private const val LOG_TAG = "wm_detector_client_debug_info"
@@ -87,11 +88,10 @@ class ActivityInfo : AppCompatActivity() {
 
             val detailInfoList = mutableListOf<String>()
             for (detailInfoItem in msgList[position].detailInfo) {
-                Log.d(LOG_TAG, detailInfoItem)
                 detailInfoList.add(detailInfoItem)
             }
             viewHolder.instruction.adapter = ArrayAdapter(msgList[position].context,
-                android.R.layout.simple_list_item_1, detailInfoList)
+                    R.layout.activity_info_detail_listview, detailInfoList)
             Utility.setListViewHeightBasedOnChildren(viewHolder.instruction)
 
             when (msgList[position].type) {
@@ -140,19 +140,28 @@ class ActivityInfo : AppCompatActivity() {
     }
 
     private fun blueToothVersionInstructionsInit() {
+        val releaseNoteLayout = findViewById<ConstraintLayout>(R.id.releaseNote_layout)
+        releaseNoteLayout.post {
+            val authorTxtView = findViewById<TextView>(R.id.author_info)
+            val params = releaseNoteLayout.layoutParams
+            params.height = authorTxtView.top - releaseNoteLayout.top
+            releaseNoteLayout.layoutParams = params
+        }
+
         val versionInstructionListView = findViewById<ListView>(R.id.versionInstructionsList)
         versionInstructionAdapter = MessageAdapter(versionInstructionList, this)
         versionInstructionListView.adapter = versionInstructionAdapter
 
         val versionInstructions = arrayListOf<Version>(
-            Version("v1.01", VERSION_RELEASE, this, arrayOf("111", "222")),
-            Version("v1.02", VERSION_DEBUG, this, arrayOf("aaa", "bbb")),
-            Version("v1.03", VERSION_BETA, this, arrayOf("ccc", "ddd")),
+            Version("v1.01", VERSION_RELEASE, this, arrayOf("project init", "home page init", "info page init")),
         )
 
         for (versionInstruction in versionInstructions) {
             versionInstructionList.add(versionInstruction)
         }
+
+        val versionNumTxtView = findViewById<TextView>(R.id.versionNum_txt)
+        versionNumTxtView.text = versionInstructions[versionInstructions.lastIndex].version
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

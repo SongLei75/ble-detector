@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version">Version: </string>
+    <string name="release_notes">Release Notes: </string>
+    <string name="bms_information">BMS Information</string>
+    <string name="author_info">author_email: songlei_coder@163.com</string>
+</resources>

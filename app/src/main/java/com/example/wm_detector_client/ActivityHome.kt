@@ -1255,7 +1255,9 @@ class ActivityHome : AppCompatActivity() {
             val listUnbondedDevice = findViewById<ListView>(R.id.unbondedBlueToothDeviceList)
 
             viewBlueToothDevices.post {
-                viewBlueToothDevices.maxHeight = viewHomePageBottomItem.top - viewBlueToothDevices.top
+                val params = viewBlueToothDevices.layoutParams
+                params.height = viewHomePageBottomItem.top - viewBlueToothDevices.top
+                viewBlueToothDevices.layoutParams = params
             }
             listUnbondedDevice.post {
 
