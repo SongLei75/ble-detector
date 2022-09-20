@@ -12,6 +12,7 @@
         android:id="@+id/blueToothButtons"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/titleBar_home" >
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/blueToothButtonsLeft"
@@ -107,7 +108,8 @@
         android:id="@+id/blueToothDevices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         app:layout_constraintTop_toBottomOf="@+id/blueToothButtons" >
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/bondedBlueToothDeviceListView"
@@ -124,12 +126,28 @@
                 android:textColor="@color/black"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent" />
+
+            <TextView
+                android:id="@+id/demoDevice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/demo_device_name"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:gravity="center_vertical"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:minHeight="30dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/bondedBlueToothDeviceListText"
+                app:layout_constraintLeft_toLeftOf="parent" />
+
             <ListView
                 android:id="@+id/bondedBlueToothDeviceList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/bondedBlueToothDeviceListText" />
+                app:layout_constraintTop_toBottomOf="@id/demoDevice" />
         </androidx.constraintlayout.widget.ConstraintLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -205,6 +223,33 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot1" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot3" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot4" />
+            <TextView
+                android:id="@+id/txt_SearchDeviceDot6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dot"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/txt_SearchDeviceDot5" />
             <TextView
                 android:id="@+id/txt_SearchDeviceDot3"
                 android:layout_width="wrap_content"

@@ -129,7 +129,7 @@ class ActivityInfo : AppCompatActivity() {
                 val titleBarText = titleBar.findViewById<TextView>(R.id.text_mid)
                 val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
                 titleBarText.text = "软件详情"
-                titleBarLeftBtn.text = "返回"
+                titleBarLeftBtn.text = "设备"
                 titleBarLeftBtn.setTextColor(Color.parseColor("#000000"))
                 titleBarLeftBtn.setOnClickListener {
                     blueToothPageUpdate(ActivityHome.PageTitle.HOME)
@@ -152,7 +152,8 @@ class ActivityInfo : AppCompatActivity() {
         versionInstructionAdapter = MessageAdapter(versionInstructionList, this)
         versionInstructionListView.adapter = versionInstructionAdapter
 
-        val versionInstructions = arrayListOf<Version>(
+        val versionInstructions = arrayListOf(
+            Version("v1.02", VERSION_DEBUG, this, arrayOf("home page debug")),
             Version("v1.01", VERSION_RELEASE, this, arrayOf("project init", "home page init", "info page init")),
         )
 
@@ -161,7 +162,7 @@ class ActivityInfo : AppCompatActivity() {
         }
 
         val versionNumTxtView = findViewById<TextView>(R.id.versionNum_txt)
-        versionNumTxtView.text = versionInstructions[versionInstructions.lastIndex].version
+        versionNumTxtView.text = versionInstructions[0].version
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

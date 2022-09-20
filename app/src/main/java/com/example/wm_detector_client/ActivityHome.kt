@@ -21,7 +21,6 @@ import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val DEMO_BLE_DEV_NAME = "WM BLE Demo Device"
 private const val LOG_TAG = "wm_detector_client_debug_home"
 private const val MY_PERMISSION_REQUEST_CODE = 0
 private val UUID_SERVER = UUID.fromString("00000001-0000-1000-8000-00805F9B34FB")
@@ -432,10 +431,28 @@ class ActivityHome : AppCompatActivity() {
         INFO,
     }
 
+    class SearchDeviceLoadingTimerTask(private val handler: Handler) : TimerTask() {
+        private var loadingDotNum = 0
+        override fun run() {
+            val mMessage = Message.obtain()
+            val mBundle = Bundle()
+            if (loadingDotNum < 6) {
+                loadingDotNum++
+            } else {
+                loadingDotNum = 0
+            }
+            mBundle.putInt(LOADING_KEY, loadingDotNum)
+            mMessage.data = mBundle
+            handler.sendMessage(mMessage)
+        }
+    }
+
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var bluetoothGatt: BluetoothGatt
     private lateinit var bluetoothWRUUID: UUID
     private lateinit var bluetoothRDUUID: UUID
+    private lateinit var searchDeviceLoadingUITimerTask: SearchDeviceLoadingTimerTask
+    private var searchDeviceLoadingUITimer = Timer("Device Loading UI Timer")
     private var bluetoothConnState = false
     private val unpairedDevicesList = mutableListOf<BluetoothDevice>()
     private val pairedDevicesList = mutableListOf<BluetoothDevice>()
@@ -444,6 +461,7 @@ class ActivityHome : AppCompatActivity() {
     companion object {
         const val TOAST_KEY = "send toast msg"
         const val CONN_KEY = "ble device connection state"
+        const val LOADING_KEY = "device searching loading state"
     }
 
     fun bluetoothDeviceListView(viewType: String) {
@@ -519,6 +537,72 @@ class ActivityHome : AppCompatActivity() {
                 bluetoothDeviceTestView(messageContent)
                 bluetoothDeviceDisconnectView(messageContent)
                 bluetoothDeviceConnStatusRefresh(messageContent)
+            }
+
+            val dot1_view = findViewById<TextView>(R.id.txt_SearchDeviceDot1)
+            val dot2_view = findViewById<TextView>(R.id.txt_SearchDeviceDot2)
+            val dot3_view = findViewById<TextView>(R.id.txt_SearchDeviceDot3)
+            val dot4_view = findViewById<TextView>(R.id.txt_SearchDeviceDot4)
+            val dot5_view = findViewById<TextView>(R.id.txt_SearchDeviceDot5)
+            val dot6_view = findViewById<TextView>(R.id.txt_SearchDeviceDot6)
+            val loadingDotNum = msg.data.getInt(LOADING_KEY)
+            when (loadingDotNum) {
+                6 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.VISIBLE
+                    dot3_view.visibility = View.VISIBLE
+                    dot4_view.visibility = View.VISIBLE
+                    dot5_view.visibility = View.VISIBLE
+                    dot6_view.visibility = View.VISIBLE
+                }
+                5 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.VISIBLE
+                    dot3_view.visibility = View.VISIBLE
+                    dot4_view.visibility = View.VISIBLE
+                    dot5_view.visibility = View.VISIBLE
+                    dot6_view.visibility = View.GONE
+                }
+                4 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.VISIBLE
+                    dot3_view.visibility = View.VISIBLE
+                    dot4_view.visibility = View.VISIBLE
+                    dot5_view.visibility = View.GONE
+                    dot6_view.visibility = View.GONE
+                }
+                3 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.VISIBLE
+                    dot3_view.visibility = View.VISIBLE
+                    dot4_view.visibility = View.GONE
+                    dot5_view.visibility = View.GONE
+                    dot6_view.visibility = View.GONE
+                }
+                2 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.VISIBLE
+                    dot3_view.visibility = View.GONE
+                    dot4_view.visibility = View.GONE
+                    dot5_view.visibility = View.GONE
+                    dot6_view.visibility = View.GONE
+                }
+                1 -> {
+                    dot1_view.visibility = View.VISIBLE
+                    dot2_view.visibility = View.GONE
+                    dot3_view.visibility = View.GONE
+                    dot4_view.visibility = View.GONE
+                    dot5_view.visibility = View.GONE
+                    dot6_view.visibility = View.GONE
+                }
+                0 -> {
+                    dot1_view.visibility = View.GONE
+                    dot2_view.visibility = View.GONE
+                    dot3_view.visibility = View.GONE
+                    dot4_view.visibility = View.GONE
+                    dot5_view.visibility = View.GONE
+                    dot6_view.visibility = View.GONE
+                }
             }
         }
     }
@@ -691,6 +775,8 @@ class ActivityHome : AppCompatActivity() {
             bluetoothAdapter.cancelDiscovery()
         }
         bluetoothAdapter.startDiscovery()
+        searchDeviceLoadingUITimerTask = SearchDeviceLoadingTimerTask(mHandler)
+        searchDeviceLoadingUITimer.schedule(searchDeviceLoadingUITimerTask, 0, 500)
     }
 
     fun testBleConnectionState(view: View) {
@@ -1134,6 +1220,7 @@ class ActivityHome : AppCompatActivity() {
 
     private fun registerBluetoothDeviceListClickHandle() {
         val searchDevices: BroadcastReceiver = object : BroadcastReceiver() {
+            @SuppressLint("UseSwitchCompatOrMaterialCode")
             override fun onReceive(context: Context, intent: Intent) {
                 when (intent.action) {
                     BluetoothAdapter.ACTION_STATE_CHANGED -> {
@@ -1155,6 +1242,14 @@ class ActivityHome : AppCompatActivity() {
                     }
                     BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
                         Toast.makeText(context, "扫描完成，点击列表中的设备来尝试连接", Toast.LENGTH_SHORT).show()
+                        searchDeviceLoadingUITimerTask.cancel()
+                        val swSearchDevice = findViewById<Switch>(R.id.sw_searchDevice)
+                        swSearchDevice.isChecked = false
+                        val mMessage = Message.obtain()
+                        val mBundle = Bundle()
+                        mBundle.putInt(LOADING_KEY, 6)
+                        mMessage.data = mBundle
+                        mHandler.sendMessage(mMessage)
                     }
                 }
             }
@@ -1222,30 +1317,28 @@ class ActivityHome : AppCompatActivity() {
         fun blueToothHomePageDemoDeviceInit() {
             fun blueToothHomePageDemoDeviceOnClick() {
                 val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
-
-                val bondedList : ListView = findViewById(R.id.bondedBlueToothDeviceList)
-                val deviceNameList = mutableListOf<String>()
-
-                for (device in pairedDevicesList) deviceNameList.add(device.name)
+                val demoDeviceView = findViewById<TextView>(R.id.demoDevice)
 
                 if (swShowDemo.isChecked) {
-                    deviceNameList.add(DEMO_BLE_DEV_NAME)
+                    demoDeviceView.visibility = View.VISIBLE
                 } else {
-                    deviceNameList.remove(DEMO_BLE_DEV_NAME)
+                    demoDeviceView.visibility = View.GONE
                 }
-                val deviceList = ArrayAdapter(this, R.layout.activity_home_listview,
-                    deviceNameList)
-                bondedList.adapter = deviceList
+
             }
 
             val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
+            val demoDeviceView = findViewById<TextView>(R.id.demoDevice)
 
             swShowDemo.setOnClickListener {
                 blueToothHomePageDemoDeviceOnClick()
             }
             swShowDemo.isChecked = true
             swShowDemo.post {
-                blueToothHomePageDemoDeviceOnClick()
+                demoDeviceView.visibility = View.VISIBLE
+            }
+            demoDeviceView.setOnClickListener {
+                //TODO: switch page demo device data show
             }
         }
 
@@ -1280,7 +1373,7 @@ class ActivityHome : AppCompatActivity() {
             }
             PageTitle.DATA_SUMMARY->{
                 val intent = Intent()
-                intent.setClass(this@ActivityHome, MainActivity2::class.java)
+                intent.setClass(this@ActivityHome, ActivityData::class.java)
                 startActivity(intent)
             }
             PageTitle.INFO->{

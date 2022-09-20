@@ -4,4 +4,5 @@
     <string name="dot">.</string>
     <string name="showDemo">显示演示设备</string>
     <string name="appInfo">App Info</string>
+    <string name="demo_device_name">WM BLE Demo Device</string>
 </resources>
