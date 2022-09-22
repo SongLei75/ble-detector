@@ -37,11 +37,13 @@
         <activity
             android:name=".ActivityInfo"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:parentActivityName=".ActivityHome" />
         <activity
             android:name=".ActivityData"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:parentActivityName=".ActivityHome" />
     </application>
 
 </manifest>

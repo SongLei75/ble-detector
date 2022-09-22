@@ -456,6 +456,7 @@ class ActivityHome : AppCompatActivity() {
     private var bluetoothConnState = false
     private val unpairedDevicesList = mutableListOf<BluetoothDevice>()
     private val pairedDevicesList = mutableListOf<BluetoothDevice>()
+    private val demoDeviceName = "WM BLE Demo Device"
 
     // 静态常量
     companion object {
@@ -464,21 +465,24 @@ class ActivityHome : AppCompatActivity() {
         const val LOADING_KEY = "device searching loading state"
     }
 
-    fun bluetoothDeviceListView(viewType: String) {
+    private fun bluetoothDeviceListView(viewType: String) {
         val bondedBLEDevTextView = findViewById<View>(R.id.bondedBlueToothDeviceListText)
         val bondedBLEDevListView = findViewById<View>(R.id.bondedBlueToothDeviceList)
         val unbondedBLEDevTextView = findViewById<View>(R.id.unbondedBlueToothDeviceListText)
         val unbondedBLEDevListView = findViewById<View>(R.id.unbondedBlueToothDeviceList)
+        val demoDeviceView = findViewById<View>(R.id.demoDevice)
         if (viewType == "disconnect") {
             bondedBLEDevTextView.visibility = View.VISIBLE
             bondedBLEDevListView.visibility = View.VISIBLE
             unbondedBLEDevTextView.visibility = View.VISIBLE
             unbondedBLEDevListView.visibility = View.VISIBLE
+            demoDeviceView.visibility = View.VISIBLE
         } else if (viewType == "connect") {
             bondedBLEDevTextView.visibility = View.GONE
             bondedBLEDevListView.visibility = View.GONE
             unbondedBLEDevTextView.visibility = View.GONE
             unbondedBLEDevListView.visibility = View.GONE
+            demoDeviceView.visibility = View.GONE
         }
     }
 
@@ -494,29 +498,47 @@ class ActivityHome : AppCompatActivity() {
     }
 
     fun bluetoothDeviceTestView(viewType: String) {
-        val dataView = findViewById<View>(R.id.bt_connTest)
+        val connTestView = findViewById<View>(R.id.bt_connTest)
         if (viewType == "disconnect") {
-            dataView.setBackgroundColor(Color.parseColor("#636363"))
+            connTestView.setBackgroundColor(Color.parseColor("#636363"))
         } else if (viewType == "connect") {
-            dataView.setBackgroundColor(Color.parseColor("#3DD239"))
+            connTestView.setBackgroundColor(Color.parseColor("#3DD239"))
         }
     }
 
     fun bluetoothDeviceDisconnectView(viewType: String) {
-        val dataView = findViewById<View>(R.id.bt_disconnect)
+        val disconnectView = findViewById<View>(R.id.bt_disconnect)
         if (viewType == "disconnect") {
-            dataView.setBackgroundColor(Color.parseColor("#636363"))
+            disconnectView.setBackgroundColor(Color.parseColor("#636363"))
         } else if (viewType == "connect") {
-            dataView.setBackgroundColor(Color.parseColor("#3DD239"))
+            disconnectView.setBackgroundColor(Color.parseColor("#3DD239"))
         }
     }
 
     fun bluetoothDeviceConnStatusRefresh(viewType: String) {
-        val dataView = findViewById<View>(R.id.connectStatus)
+        val connectStatusView = findViewById<View>(R.id.connectStatus)
+        val connectFlagView = findViewById<ImageView>(R.id.connectedFlag)
+
         if (viewType == "disconnect") {
-            dataView.visibility = View.GONE
+            connectStatusView.visibility = View.GONE
+            connectFlagView.visibility = View.GONE
         } else if (viewType == "connect") {
-            dataView.visibility = View.VISIBLE
+            connectStatusView.visibility = View.VISIBLE
+            connectFlagView.visibility = View.VISIBLE
+        }
+    }
+
+    fun bluetoothDeviceDataSummaryPageUpdate(viewType: String) {
+        if (viewType == "disconnect") {
+            if (this::bluetoothGatt.isInitialized) {
+                Toast.makeText(this@ActivityHome, "连接已断开", Toast.LENGTH_SHORT).show()
+            }
+        } else if (viewType == "connect") {
+            if (this::bluetoothGatt.isInitialized) {
+                findViewById<Switch>(R.id.sw_showDemo).isChecked = false
+                findViewById<TextView>(R.id.demoDevice).visibility = View.GONE
+            }
+            blueToothPageUpdate(PageTitle.DATA_SUMMARY)
         }
     }
 
@@ -532,76 +554,76 @@ class ActivityHome : AppCompatActivity() {
 
             messageContent = msg.data.getString(CONN_KEY)
             if (messageContent != null) {
-                bluetoothDeviceListView(messageContent)
-                bluetoothDeviceDataView(messageContent)
-                bluetoothDeviceTestView(messageContent)
-                bluetoothDeviceDisconnectView(messageContent)
-                bluetoothDeviceConnStatusRefresh(messageContent)
+//                bluetoothDeviceListView(messageContent)
+//                bluetoothDeviceDataView(messageContent)
+//                bluetoothDeviceTestView(messageContent)
+//                bluetoothDeviceDisconnectView(messageContent)
+//                bluetoothDeviceConnStatusRefresh(messageContent)
+                bluetoothDeviceDataSummaryPageUpdate(messageContent)
             }
 
-            val dot1_view = findViewById<TextView>(R.id.txt_SearchDeviceDot1)
-            val dot2_view = findViewById<TextView>(R.id.txt_SearchDeviceDot2)
-            val dot3_view = findViewById<TextView>(R.id.txt_SearchDeviceDot3)
-            val dot4_view = findViewById<TextView>(R.id.txt_SearchDeviceDot4)
-            val dot5_view = findViewById<TextView>(R.id.txt_SearchDeviceDot5)
-            val dot6_view = findViewById<TextView>(R.id.txt_SearchDeviceDot6)
-            val loadingDotNum = msg.data.getInt(LOADING_KEY)
-            when (loadingDotNum) {
+            val dot1view = findViewById<TextView>(R.id.txt_SearchDeviceDot1)
+            val dot2view = findViewById<TextView>(R.id.txt_SearchDeviceDot2)
+            val dot3view = findViewById<TextView>(R.id.txt_SearchDeviceDot3)
+            val dot4view = findViewById<TextView>(R.id.txt_SearchDeviceDot4)
+            val dot5view = findViewById<TextView>(R.id.txt_SearchDeviceDot5)
+            val dot6view = findViewById<TextView>(R.id.txt_SearchDeviceDot6)
+            when (msg.data.getInt(LOADING_KEY)) {
                 6 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.VISIBLE
-                    dot3_view.visibility = View.VISIBLE
-                    dot4_view.visibility = View.VISIBLE
-                    dot5_view.visibility = View.VISIBLE
-                    dot6_view.visibility = View.VISIBLE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.VISIBLE
+                    dot3view.visibility = View.VISIBLE
+                    dot4view.visibility = View.VISIBLE
+                    dot5view.visibility = View.VISIBLE
+                    dot6view.visibility = View.VISIBLE
                 }
                 5 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.VISIBLE
-                    dot3_view.visibility = View.VISIBLE
-                    dot4_view.visibility = View.VISIBLE
-                    dot5_view.visibility = View.VISIBLE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.VISIBLE
+                    dot3view.visibility = View.VISIBLE
+                    dot4view.visibility = View.VISIBLE
+                    dot5view.visibility = View.VISIBLE
+                    dot6view.visibility = View.GONE
                 }
                 4 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.VISIBLE
-                    dot3_view.visibility = View.VISIBLE
-                    dot4_view.visibility = View.VISIBLE
-                    dot5_view.visibility = View.GONE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.VISIBLE
+                    dot3view.visibility = View.VISIBLE
+                    dot4view.visibility = View.VISIBLE
+                    dot5view.visibility = View.GONE
+                    dot6view.visibility = View.GONE
                 }
                 3 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.VISIBLE
-                    dot3_view.visibility = View.VISIBLE
-                    dot4_view.visibility = View.GONE
-                    dot5_view.visibility = View.GONE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.VISIBLE
+                    dot3view.visibility = View.VISIBLE
+                    dot4view.visibility = View.GONE
+                    dot5view.visibility = View.GONE
+                    dot6view.visibility = View.GONE
                 }
                 2 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.VISIBLE
-                    dot3_view.visibility = View.GONE
-                    dot4_view.visibility = View.GONE
-                    dot5_view.visibility = View.GONE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.VISIBLE
+                    dot3view.visibility = View.GONE
+                    dot4view.visibility = View.GONE
+                    dot5view.visibility = View.GONE
+                    dot6view.visibility = View.GONE
                 }
                 1 -> {
-                    dot1_view.visibility = View.VISIBLE
-                    dot2_view.visibility = View.GONE
-                    dot3_view.visibility = View.GONE
-                    dot4_view.visibility = View.GONE
-                    dot5_view.visibility = View.GONE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.VISIBLE
+                    dot2view.visibility = View.GONE
+                    dot3view.visibility = View.GONE
+                    dot4view.visibility = View.GONE
+                    dot5view.visibility = View.GONE
+                    dot6view.visibility = View.GONE
                 }
                 0 -> {
-                    dot1_view.visibility = View.GONE
-                    dot2_view.visibility = View.GONE
-                    dot3_view.visibility = View.GONE
-                    dot4_view.visibility = View.GONE
-                    dot5_view.visibility = View.GONE
-                    dot6_view.visibility = View.GONE
+                    dot1view.visibility = View.GONE
+                    dot2view.visibility = View.GONE
+                    dot3view.visibility = View.GONE
+                    dot4view.visibility = View.GONE
+                    dot5view.visibility = View.GONE
+                    dot6view.visibility = View.GONE
                 }
             }
         }
@@ -842,7 +864,6 @@ class ActivityHome : AppCompatActivity() {
         if (!bluetoothConnState) return
 
         blueToothPageUpdate(PageTitle.DATA_SUMMARY)
-        Log.d(LOG_TAG, "reserved")
     }
 
     fun blueToothSoftWareInfo(view: View) {
@@ -1314,6 +1335,7 @@ class ActivityHome : AppCompatActivity() {
             swSearchDevice.isChecked = false
         }
 
+        @SuppressLint("SetTextI18n")
         fun blueToothHomePageDemoDeviceInit() {
             fun blueToothHomePageDemoDeviceOnClick() {
                 val swShowDemo = findViewById<Switch>(R.id.sw_showDemo)
@@ -1334,12 +1356,15 @@ class ActivityHome : AppCompatActivity() {
                 blueToothHomePageDemoDeviceOnClick()
             }
             swShowDemo.isChecked = true
-            swShowDemo.post {
-                demoDeviceView.visibility = View.VISIBLE
-            }
             demoDeviceView.setOnClickListener {
-                //TODO: switch page demo device data show
+                val mMessage = Message.obtain()
+                val mBundle = Bundle()
+                mBundle.putString(CONN_KEY, "connect")
+                mMessage.data = mBundle
+                mHandler.sendMessage(mMessage)
             }
+            demoDeviceView.text = demoDeviceName
+            demoDeviceView.visibility = View.VISIBLE
         }
 
         fun blueToothHomePageDeviceListInit() {
@@ -1374,6 +1399,17 @@ class ActivityHome : AppCompatActivity() {
             PageTitle.DATA_SUMMARY->{
                 val intent = Intent()
                 intent.setClass(this@ActivityHome, ActivityData::class.java)
+                if (ActivityCompat.checkSelfPermission(this,
+                        Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    if (!this::bluetoothGatt.isInitialized) {
+                        intent.putExtra("device name", demoDeviceName)
+                        intent.putExtra("demo device show flag", true)
+                    } else {
+                        intent.putExtra("device name", bluetoothGatt.device.name)
+                        intent.putExtra("demo device show flag", false)
+                    }
+                }
                 startActivity(intent)
             }
             PageTitle.INFO->{
@@ -1417,5 +1453,13 @@ class ActivityHome : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d(LOG_TAG, "MainActivity onResume")
+
+        if (!this::bluetoothGatt.isInitialized) {
+            val mMessage = Message.obtain()
+            val mBundle = Bundle()
+            mBundle.putString(CONN_KEY, "disconnect")
+            mMessage.data = mBundle
+            mHandler.sendMessage(mMessage)
+        }
     }
 }

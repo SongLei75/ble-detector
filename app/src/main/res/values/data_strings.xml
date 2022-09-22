@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_update_time">最后更新时间:</string>
+    <string name="battery_charging_switch">battery charging switch</string>
+    <string name="battery_working_switch">battery working switch</string>
+    <string name="battery_charging">充电</string>
+    <string name="battery_working">放电</string>
+</resources>
