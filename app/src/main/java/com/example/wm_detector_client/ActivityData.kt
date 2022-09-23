@@ -9,11 +9,9 @@ import android.os.Looper
 import android.os.Message
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -433,6 +431,15 @@ class ActivityData : AppCompatActivity() {
     }
 
     private fun bluetoothDataBatteryInit() {
+        fun bluetoothDataBatteryDetailInfoInit() {
+            val batteryDetailInfoScrollView = findViewById<ScrollView>(R.id.batteryDetailInfoScroll)
+            batteryDetailInfoScrollView.post {
+                val batteryControlLayoutView = findViewById<ConstraintLayout>(R.id.batteryControlLayout)
+                val params = batteryDetailInfoScrollView.layoutParams
+                params.height = batteryControlLayoutView.top - batteryDetailInfoScrollView.top
+                batteryDetailInfoScrollView.layoutParams = params
+            }
+        }
         secondUpdateTimerTask = SecondUpdateTimeTimerTask(mHandler)
         secondUpdateTimer.schedule(secondUpdateTimerTask, 0, 1000)
 
@@ -441,6 +448,7 @@ class ActivityData : AppCompatActivity() {
 
         val batteryChargingValSwitch = findViewById<Switch>(R.id.batteryChargingElectricitySwitch)
         batteryChargingValSwitch.isChecked = false
+        findViewById<TextView>(R.id.batteryChargingElectricity).text = "关闭"
         batteryChargingValSwitch.setOnClickListener {
             if (batteryChargingValSwitch.isChecked) {
                 findViewById<TextView>(R.id.batteryChargingElectricity).text = "..."
@@ -450,6 +458,7 @@ class ActivityData : AppCompatActivity() {
         }
         val batteryWorkingValSwitch = findViewById<Switch>(R.id.batteryWorkingElectricitySwitch)
         batteryWorkingValSwitch.isChecked = false
+        findViewById<TextView>(R.id.batteryWorkingElectricity).text = "关闭"
         batteryWorkingValSwitch.setOnClickListener {
             if (batteryWorkingValSwitch.isChecked) {
                 findViewById<TextView>(R.id.batteryWorkingElectricity).text = "..."
@@ -457,6 +466,7 @@ class ActivityData : AppCompatActivity() {
                 findViewById<TextView>(R.id.batteryWorkingElectricity).text = "关闭"
             }
         }
+        bluetoothDataBatteryDetailInfoInit()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

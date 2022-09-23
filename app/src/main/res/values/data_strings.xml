@@ -5,4 +5,12 @@
     <string name="battery_working_switch">battery working switch</string>
     <string name="battery_charging">充电</string>
     <string name="battery_working">放电</string>
+    <string name="battery_control_turnOn">电池开启</string>
+    <string name="battery_control_turnOff">电池关闭</string>
+    <string name="battery_control_config">配置</string>
+    <string name="battery_warnings">警报</string>
+    <string name="battery_temperature">温度</string>
+    <string name="battery_voltage">电池单位</string>
+    <string name="battery_snapshot">会话数值</string>
+    <string name="battery_BMSInfo">BMS信息/错误计数器</string>
 </resources>
