@@ -460,6 +460,8 @@ class ActivityHome : AppCompatActivity() {
 
     // 静态常量
     companion object {
+        var ActivityHomeInstance: ActivityHome? = null
+
         const val TOAST_KEY = "send toast msg"
         const val CONN_KEY = "ble device connection state"
         const val LOADING_KEY = "device searching loading state"
@@ -1423,7 +1425,7 @@ class ActivityHome : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-
+        ActivityHomeInstance = this
         Log.d(LOG_TAG, "MainActivity onCreate")
 
         blueToothHomePageInit()

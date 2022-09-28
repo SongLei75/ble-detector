@@ -393,6 +393,7 @@
         android:id="@+id/batteryDetailInfoScroll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         app:layout_constraintTop_toBottomOf="@+id/batteryLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
@@ -428,7 +429,7 @@
                 android:id="@+id/batteryDetailInfoTemperature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 app:layout_constraintTop_toBottomOf="@+id/batteryDetailInfoWarning">
                 <TextView
                     android:id="@+id/batteryDetailInfoTemperatureTxt"
@@ -447,7 +448,7 @@
                 android:id="@+id/batteryDetailInfoVoltage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 app:layout_constraintTop_toBottomOf="@+id/batteryDetailInfoTemperature">
                 <TextView
                     android:id="@+id/batteryDetailInfoVoltageTxt"
@@ -466,7 +467,7 @@
                 android:id="@+id/batteryDetailInfoSnapShot"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 app:layout_constraintTop_toBottomOf="@+id/batteryDetailInfoVoltage">
                 <TextView
                     android:id="@+id/batteryDetailInfoSnapShotTxt"
@@ -485,7 +486,7 @@
                 android:id="@+id/batteryDetailInfoBMSInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 app:layout_constraintTop_toBottomOf="@+id/batteryDetailInfoSnapShot">
                 <TextView
                     android:id="@+id/batteryDetailInfoBMSInfoTxt"
@@ -506,7 +507,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
