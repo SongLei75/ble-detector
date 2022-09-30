@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/batteryUnitNumTxt"
+        android:layout_width="20dp"
+        android:layout_height="wrap_content"
+        android:text="11"
+        android:textColor="@color/white"
+        android:background="@color/black"
+        android:gravity="center"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/batteryUnitVoltagePercentLayout"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:backgroundTint="@color/black"
+        app:layout_constraintRight_toLeftOf="@+id/batteryUnitBalancingFlagTxt"
+        app:layout_constraintLeft_toRightOf="@+id/batteryUnitNumTxt"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <View
+                android:id="@+id/batteryUnitVoltagePercentView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:background="@color/blue" />
+            <View
+                android:id="@+id/batteryUnitVoltageBlankPercentView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:background="@color/white" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/batteryUnitVoltageTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="3.000 V"
+            android:textColor="@color/black"
+            android:layout_marginStart="3dp"
+            app:layout_constraintLeft_toLeftOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/batteryUnitBalancingFlagTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:text="[BALANCING]"
+        android:textColor="@color/black"
+        android:layout_marginStart="3dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

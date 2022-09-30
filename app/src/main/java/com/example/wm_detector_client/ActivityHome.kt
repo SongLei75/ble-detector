@@ -21,6 +21,42 @@ import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.*
 
+// 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+fun dip2px(context: Context, dpValue: Float): Int {
+    // 获取当前手机的像素密度（1个dp对应几个px）
+    val scale = context.resources.displayMetrics.density
+    return (dpValue * scale + 0.5f).toInt() // 四舍五入取整
+}
+
+// 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+fun px2dip(context: Context, pxValue: Int): Int {
+    // 获取当前手机的像素密度（1个dp对应几个px）
+    val scale = context.resources.displayMetrics.density
+    return (pxValue / scale + 0.5f).toInt() // 四舍五入取整
+}
+
+fun setListViewHeightBasedOnChildren(listView: ListView) {
+    //获取ListView对应的Adapter
+    val listAdapter = listView.adapter
+        ?: // pre-condition
+        return
+    var totalHeight = 0
+    var i = 0
+    val len = listAdapter.count
+    while (i < len) {
+        //listAdapter.getCount()返回数据项的数目
+        val listItem = listAdapter.getView(i, null, listView)
+        listItem.measure(0, 0) //计算子项View 的宽高
+        totalHeight += listItem.measuredHeight //统计所有子项的总高度
+        i++
+    }
+    val params = listView.layoutParams
+    params.height = totalHeight + listView.dividerHeight * (listAdapter.count - 1)
+    //listView.getDividerHeight()获取子项间分隔符占用的高度
+    //params.height最后得到整个ListView完整显示需要的高度
+    listView.layoutParams = params
+}
+
 private const val LOG_TAG = "wm_detector_client_debug_home"
 private const val MY_PERMISSION_REQUEST_CODE = 0
 private val UUID_SERVER = UUID.fromString("00000001-0000-1000-8000-00805F9B34FB")
@@ -488,7 +524,7 @@ class ActivityHome : AppCompatActivity() {
         }
     }
 
-    fun bluetoothDeviceDataView(viewType: String) {
+    private fun bluetoothDeviceDataView(viewType: String) {
         val dataView = findViewById<View>(R.id.bt_dataView)
         if (viewType == "disconnect") {
             dataView.setBackgroundColor(Color.parseColor("#636363"))
@@ -499,7 +535,7 @@ class ActivityHome : AppCompatActivity() {
         }
     }
 
-    fun bluetoothDeviceTestView(viewType: String) {
+    private fun bluetoothDeviceTestView(viewType: String) {
         val connTestView = findViewById<View>(R.id.bt_connTest)
         if (viewType == "disconnect") {
             connTestView.setBackgroundColor(Color.parseColor("#636363"))
@@ -517,7 +553,7 @@ class ActivityHome : AppCompatActivity() {
         }
     }
 
-    fun bluetoothDeviceConnStatusRefresh(viewType: String) {
+    private fun bluetoothDeviceConnStatusRefresh(viewType: String) {
         val connectStatusView = findViewById<View>(R.id.connectStatus)
         val connectFlagView = findViewById<ImageView>(R.id.connectedFlag)
 

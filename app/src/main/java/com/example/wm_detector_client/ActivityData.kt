@@ -3,38 +3,19 @@ package com.example.wm_detector_client
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Point
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import android.view.*
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.content.ContextCompat.getSystemService
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 private const val LOG_TAG = "wm_detector_client_debug_data"
-
-// 根据手机的分辨率从 dp 的单位 转成为 px(像素)
-fun dip2px(context: Context, dpValue: Float): Int {
-    // 获取当前手机的像素密度（1个dp对应几个px）
-    val scale = context.resources.displayMetrics.density
-    return (dpValue * scale + 0.5f).toInt() // 四舍五入取整
-}
-
-// 根据手机的分辨率从 px(像素) 的单位 转成为 dp
-fun px2dip(context: Context, pxValue: Float): Int {
-    // 获取当前手机的像素密度（1个dp对应几个px）
-    val scale = context.resources.displayMetrics.density
-    return (pxValue / scale + 0.5f).toInt() // 四舍五入取整
-}
 
 class ActivityData : AppCompatActivity() {
     companion object {
@@ -48,6 +29,9 @@ class ActivityData : AppCompatActivity() {
         const val BATTERY_WORKING_KEY = "battery working electricity value"
         const val BATTERY_TEMPERATURE_NUM_KEY = "battery temperature sensor num value"
         const val BATTERY_TEMPERATURE_KEY = "battery temperature sensor value"
+        const val BATTERY_BATTERY_NUM_KEY = "battery battery unit num value"
+        const val BATTERY_BATTERY_VOLTAGE_KEY = "battery battery voltage value"
+        const val BATTERY_BATTERY_BALANCE_KEY = "battery battery balancing flag"
     }
 
     private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
@@ -56,8 +40,9 @@ class ActivityData : AppCompatActivity() {
 
             val secondUpdateFlag = msg.data.getBoolean(DATA_SECOND_UPDATE)
             if (secondUpdateFlag) {
-                findViewById<TextView>(R.id.dataUpdateTime).text = getDate()
+                findViewById<TextView>(R.id.dataUpdateTime).text = getDate("detail")
                 batteryChargingWorkingUIUpdate()
+                batteryVoltageOverviewUpdate()
             }
 
             if (msg.data.getBoolean(BATTERY_UPDATE_KEY, false)) {
@@ -71,11 +56,19 @@ class ActivityData : AppCompatActivity() {
             }
 
             val sensorNum = msg.data.getInt(BATTERY_TEMPERATURE_NUM_KEY, Int.MAX_VALUE)
-
             if (sensorNum < batteryInfoTemperatureList.size) {
                 batteryInfoTemperatureList[sensorNum].temperature = (msg.data.getInt(
                     BATTERY_TEMPERATURE_KEY, 0).toFloat() / 10)
                 batteryInfoTemperatureAdapter.notifyDataSetChanged()
+            }
+
+            val batteryUnitNum = msg.data.getInt(BATTERY_BATTERY_NUM_KEY, Int.MAX_VALUE)
+            if (batteryUnitNum < batteryInfoBatteryUnitList.size) {
+                batteryInfoBatteryUnitList[batteryUnitNum].voltage = (msg.data.getInt(
+                    BATTERY_BATTERY_VOLTAGE_KEY, 0).toFloat() / 1000)
+                batteryInfoBatteryUnitList[batteryUnitNum].balanceFlag = (msg.data.getBoolean(
+                    BATTERY_BATTERY_BALANCE_KEY, false))
+                batteryInfoBatteryUnitAdapter.notifyDataSetChanged()
             }
         }
     }
@@ -96,6 +89,18 @@ class ActivityData : AppCompatActivity() {
             val mBundle = Bundle()
             mBundle.putInt(BATTERY_TEMPERATURE_NUM_KEY, sensorNum)
             mBundle.putInt(BATTERY_TEMPERATURE_KEY, (0..1000).random())
+            mMessage.data = mBundle
+            handler.sendMessage(mMessage)
+        }
+    }
+
+    class BatteryBatteryUnitUpdateTimerTask(private val handler: Handler, private val batteryNum: Int) : TimerTask() {
+        override fun run() {
+            val mMessage = Message.obtain()
+            val mBundle = Bundle()
+            mBundle.putInt(BATTERY_BATTERY_NUM_KEY, batteryNum)
+            mBundle.putInt(BATTERY_BATTERY_VOLTAGE_KEY, (2500..4000).random())
+            mBundle.putBoolean(BATTERY_BATTERY_BALANCE_KEY, (0..1).random() == 0)
             mMessage.data = mBundle
             handler.sendMessage(mMessage)
         }
@@ -252,14 +257,17 @@ class ActivityData : AppCompatActivity() {
             viewHolder.nameModify.setImageResource(R.drawable.name_modify)
             viewHolder.nameModify.tag = position
             viewHolder.nameModify.setOnClickListener{
-                val popupWindowView = LayoutInflater.from(context).inflate(R.layout.activity_data_popup_window, null)
+                val popupWindowView = LayoutInflater.from(context).inflate(R.layout.activity_data_battery_rename_popup_window, null)
                 val popupWindowEditTxtView = popupWindowView.findViewById<EditText>(R.id.popupWindowEditTxt)
                 popupWindowEditTxtView.hint = msgList[position].sensorName
                 val popupWindow = PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT, true)
                 val popupWindowConfirmBtn = popupWindowView.findViewById<Button>(R.id.popupWindowConfirmBtn)
                 popupWindowConfirmBtn.setOnClickListener {
-                    msgList[position].sensorName = popupWindowEditTxtView.text.toString()
+                    val newName = popupWindowEditTxtView.text.toString()
+                    if (newName != "") {
+                        msgList[position].sensorName = newName
+                    }
                     popupWindow.dismiss()
                 }
                 popupWindow.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
@@ -277,6 +285,108 @@ class ActivityData : AppCompatActivity() {
         }
     }
 
+    class BatteryUnit(var voltage: Float, var balanceFlag: Boolean)
+    class BatteryUnitMessageAdapter(private val msgList: ArrayList<BatteryUnit>,
+                                    context: Context): BaseAdapter() {
+        private val mInflater: LayoutInflater = LayoutInflater.from(context)
+        override fun getCount(): Int {
+            return msgList.size
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        @SuppressLint("InflateParams", "SetTextI18n")
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val view: View
+            val viewHolder: ViewHolder
+
+            if (convertView == null) {
+                view = mInflater.inflate(R.layout.activity_data_battery_unit_listview, null)
+                viewHolder = ViewHolder()
+                viewHolder.num = view.findViewById(R.id.batteryUnitNumTxt)
+                viewHolder.batteryVoltageLayout = view.findViewById(R.id.batteryUnitVoltagePercentLayout)
+                viewHolder.balancingFlag = view.findViewById(R.id.batteryUnitBalancingFlagTxt)
+                view.tag = viewHolder
+            } else {
+                view = convertView
+                viewHolder = view.tag as ViewHolder
+            }
+
+            viewHolder.num.text = position.toString()
+            viewHolder.balancingFlag.setTextColor(if (msgList[position].balanceFlag) Color.BLACK else Color.GRAY)
+            viewHolder.batteryVoltageLayout.findViewById<TextView>(R.id.batteryUnitVoltageTxt).text =
+                String.format("%.3f V", msgList[position].voltage)
+
+            var batteryUnitVoltageMax = 0F
+            for (item in msgList) if (item.voltage > batteryUnitVoltageMax) {
+                batteryUnitVoltageMax = item.voltage
+            }
+            val batteryUnitVoltagePercent = msgList[position].voltage / (batteryUnitVoltageMax * 1.1F)
+            val batteryUnitVoltagePercentLp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, batteryUnitVoltagePercent)
+            viewHolder.batteryVoltageLayout.findViewById<View>(R.id.batteryUnitVoltagePercentView).layoutParams = batteryUnitVoltagePercentLp
+            val batteryUnitVoltageBlankPercentLp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1 - batteryUnitVoltagePercent)
+            viewHolder.batteryVoltageLayout.findViewById<View>(R.id.batteryUnitVoltageBlankPercentView).layoutParams = batteryUnitVoltageBlankPercentLp
+
+            return view
+        }
+
+        internal class ViewHolder {
+            lateinit var num: TextView
+            lateinit var batteryVoltageLayout: ConstraintLayout
+            lateinit var balancingFlag: TextView
+        }
+    }
+
+    class BMSInfoError(var item: String, var description: String)
+    class BMSInfoErrorMessageAdapter(private val msgList: ArrayList<BMSInfoError>,
+                                    context: Context): BaseAdapter() {
+        private val mInflater: LayoutInflater = LayoutInflater.from(context)
+        override fun getCount(): Int {
+            return msgList.size
+        }
+
+        override fun getItem(position: Int): Any {
+            return position
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        @SuppressLint("InflateParams", "SetTextI18n")
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val view: View
+            val viewHolder: ViewHolder
+
+            if (convertView == null) {
+                view = mInflater.inflate(R.layout.activity_data_bms_listview, null)
+                viewHolder = ViewHolder()
+                viewHolder.item = view.findViewById(R.id.BMSInfoErrorCounterTxt)
+                viewHolder.description = view.findViewById(R.id.BMSInfoErrorCounterDescriptionTxt)
+                view.tag = viewHolder
+            } else {
+                view = convertView
+                viewHolder = view.tag as ViewHolder
+            }
+
+            viewHolder.item.text = msgList[position].item
+            viewHolder.description.text = msgList[position].description
+
+            return view
+        }
+
+        internal class ViewHolder {
+            lateinit var item: TextView
+            lateinit var description: TextView
+        }
+    }
+
     private var secondUpdateTimer = Timer("Second Update time Timer")
     private var batteryInfoUpdateTimer = Timer("Data Update time Timer")
     private var demoDeviceShowFlag = false
@@ -284,26 +394,65 @@ class ActivityData : AppCompatActivity() {
     private var batteryChargingUICnt = 0
     private var batteryWorkingFlag = false
     private var batteryWorkingUICnt = 0
+    private var batteryMaxVoltage = 0F
+    private var batteryMinVoltage = Float.MAX_VALUE
+    private var batteryMaxChargingElectricity = 0F
+    private var batteryMaxWorkingElectricity = 0F
+    private var batteryMaxPerformance = 0
     private var batteryInfoWarningsList = arrayListOf<Warnings>()
     private var batteryInfoTemperatureList = arrayListOf<Temperature>()
+    private var batteryInfoBatteryUnitList = arrayListOf<BatteryUnit>()
+    private var batteryInfoBMSInfoErrorList = arrayListOf<BMSInfoError>()
     private var batteryTemperatureUpdateTimer = arrayListOf<Timer>()
     private var batteryTemperatureUpdateTask = arrayListOf<BatteryTemperatureUpdateTimerTask>()
+    private var batteryBatteryUnitVoltageUpdateTimer = arrayListOf<Timer>()
+    private var batteryBatteryUnitVoltageUpdateTask = arrayListOf<BatteryBatteryUnitUpdateTimerTask>()
     private lateinit var secondUpdateTimerTask: SecondUpdateTimeTimerTask
     private lateinit var batteryInfoUpdateTimerTask: BatteryPercentUpdateTimerTask
     private lateinit var batteryInfoWarningsAdapter: WarningMessageAdapter
     private lateinit var batteryInfoTemperatureAdapter: TemperatureMessageAdapter
+    private lateinit var batteryInfoBatteryUnitAdapter: BatteryUnitMessageAdapter
+    private lateinit var batteryInfoBMSInfoErrorAdapter: BMSInfoErrorMessageAdapter
 
     @SuppressLint("SimpleDateFormat")
-    fun getDate(): String {
-        return if (android.os.Build.VERSION.SDK_INT >= 24){
-            SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
-        }else{
-            val tms = Calendar.getInstance()
-            tms.get(Calendar.YEAR).toString() + "-" +
-                tms.get(Calendar.MONTH).toString() + "-" +
-                tms.get(Calendar.DAY_OF_MONTH).toString() + " " +
-                String.format("%02d:%02d:%02d", tms.get(Calendar.HOUR_OF_DAY), tms.get(Calendar.MINUTE), tms.get(Calendar.SECOND))
+    fun getDate(type: String): String {
+        var date = ""
+        var time = ""
+
+        when (type) {
+            "date" -> {
+                date = if (android.os.Build.VERSION.SDK_INT >= 24){
+                    SimpleDateFormat("yyyy-MM-dd").format(Date())
+                }else{
+                    val tms = Calendar.getInstance()
+                    tms.get(Calendar.YEAR).toString() + "-" +
+                        (tms.get(Calendar.MONTH) + 1).toString() + "-" +
+                        tms.get(Calendar.DAY_OF_MONTH).toString()
+                }
+            }
+            "time" -> {
+                time = if (android.os.Build.VERSION.SDK_INT >= 24){
+                    SimpleDateFormat("HH:mm:ss").format(Date())
+                }else{
+                    val tms = Calendar.getInstance()
+                    String.format("%02d:%02d:%02d", tms.get(Calendar.HOUR_OF_DAY), tms.get(Calendar.MINUTE), tms.get(Calendar.SECOND))
+                }
+            }
+            "detail" -> {
+                return if (android.os.Build.VERSION.SDK_INT >= 24){
+                    SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+                }else{
+                    val tms = Calendar.getInstance()
+
+                    tms.get(Calendar.YEAR).toString() + "-" +
+                        (tms.get(Calendar.MONTH) + 1).toString() + "-" +
+                        tms.get(Calendar.DAY_OF_MONTH).toString() + " " +
+                        String.format("%02d:%02d:%02d", tms.get(Calendar.HOUR_OF_DAY), tms.get(Calendar.MINUTE), tms.get(Calendar.SECOND))
+                }
+            }
         }
+
+        return date + time
     }
 
     @SuppressLint("SetTextI18n")
@@ -427,12 +576,38 @@ class ActivityData : AppCompatActivity() {
             }
         }
 
+        fun bluetoothDataBatterySnapshotOverviewUpdate(batteryVoltage: Int, batteryElectric: Int,
+                                                       batteryChargingVal: Int, batteryWorkingVal: Int) {
+            batteryMaxVoltage = if (batteryVoltage.toFloat() / 100 > batteryMaxVoltage)
+                batteryVoltage.toFloat() / 100 else batteryMaxVoltage
+            batteryMinVoltage = if (batteryVoltage.toFloat() / 100 < batteryMinVoltage)
+                batteryVoltage.toFloat() / 100 else batteryMinVoltage
+            batteryMaxChargingElectricity = if (batteryChargingVal.toFloat() / 100 > batteryMaxChargingElectricity)
+                batteryChargingVal.toFloat() / 100 else batteryMaxChargingElectricity
+            batteryMaxWorkingElectricity = if (batteryWorkingVal.toFloat() / 100 > batteryMaxWorkingElectricity)
+                batteryWorkingVal.toFloat() / 100 else batteryMaxWorkingElectricity
+            batteryMaxPerformance = if ((batteryVoltage * batteryElectric) / 10000 > batteryMaxPerformance)
+                (batteryVoltage * batteryElectric) / 10000 else batteryMaxPerformance
+
+            val batteryMaxVoltageView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxVoltageTxt)
+            batteryMaxVoltageView.text = "%.2f V".format(batteryMaxVoltage)
+            val batteryMinVoltageView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMinVoltageTxt)
+            batteryMinVoltageView.text = "%.2f V".format(batteryMinVoltage)
+            val batteryMaxChargingElectricityView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxChargingElectricityTxt)
+            batteryMaxChargingElectricityView.text = "%.2f A".format(batteryMaxChargingElectricity)
+            val batteryMaxWorkingElectricityView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxWorkingElectricityTxt)
+            batteryMaxWorkingElectricityView.text = "%.2f A".format(batteryMaxWorkingElectricity)
+            val batteryMaxPerformanceView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxPerfTxt)
+            batteryMaxPerformanceView.text = "%d W".format(batteryMaxPerformance)
+        }
+
         bluetoothDataBatteryPercentUpdate(batteryPercent)
         bluetoothDataBatteryVoltageUpdate(batteryVoltage)
         bluetoothDataBatteryElectricityUpdate(batteryElectric)
         bluetoothDataBatteryPowerUpdate(batteryVoltage, batteryElectric)
         bluetoothDataBatteryChargingElectricityValUpdate(batteryChargingVal)
         bluetoothDataBatteryWorkingElectricityValUpdate(batteryWorkingVal)
+        bluetoothDataBatterySnapshotOverviewUpdate(batteryVoltage, batteryElectric, batteryChargingVal, batteryWorkingVal)
     }
 
     fun batteryChargingWorkingUIUpdate() {
@@ -569,6 +744,138 @@ class ActivityData : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    fun batteryVoltageOverviewUpdate() {
+        val batteryDetailInfoVoltageAvgTxtView = findViewById<TextView>(R.id.batteryDetailInfoVoltageAvgTxt)
+        val batteryDetailInfoVoltageMaxTxtView = findViewById<TextView>(R.id.batteryDetailInfoVoltageMaxTxt)
+        val batteryDetailInfoVoltageMinTxtView = findViewById<TextView>(R.id.batteryDetailInfoVoltageMinTxt)
+
+        var voltageSum = 0F
+        var voltageMax = 0F
+        var voltageMin = Float.MAX_VALUE
+
+        for (ele in batteryInfoBatteryUnitList) {
+            voltageSum += ele.voltage
+            if (ele.voltage > voltageMax) {
+                voltageMax = ele.voltage
+            }
+            if(ele.voltage < voltageMin) {
+                voltageMin = ele.voltage
+            }
+        }
+
+        batteryDetailInfoVoltageAvgTxtView.text = "△: " +
+            "%.3f".format(voltageSum / (batteryInfoBatteryUnitList.size.toFloat())) + ","
+        batteryDetailInfoVoltageMinTxtView.text = "min: " +
+                "%.3f".format(voltageMin) + ","
+        batteryDetailInfoVoltageMaxTxtView.text = "max: " +
+                "%.3f".format(voltageMax) + ","
+    }
+
+    @SuppressLint("SetTextI18n", "InflateParams")
+    fun batteryVoltageOverviewReset(view: View) {
+        if (view.id != R.id.batteryDetailInfoSnapShotOverviewResetBtn)
+            return
+
+        val popupWindowView = LayoutInflater.from(this).inflate(R.layout.activity_data_battery_reset_popup_window, null)
+        val popupWindowLayout = popupWindowView.findViewById<ConstraintLayout>(R.id.popupWindowLayout)
+        val popupWindowConfirmBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowConfirmBtn)
+        val popupWindowCancelBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowCancelBtn)
+
+        val popupWindow = PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT, true)
+
+        popupWindowConfirmBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowConfirmBtnView.setOnClickListener {
+            batteryMaxVoltage = 0F
+            batteryMinVoltage = Float.MAX_VALUE
+            batteryMaxChargingElectricity = 0F
+            batteryMaxWorkingElectricity = 0F
+            batteryMaxPerformance = 0
+
+            val batteryMaxVoltageView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxVoltageTxt)
+            batteryMaxVoltageView.text = "..."
+            val batteryMinVoltageView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMinVoltageTxt)
+            batteryMinVoltageView.text = "..."
+            val batteryMaxChargingElectricityView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxChargingElectricityTxt)
+            batteryMaxChargingElectricityView.text = "..."
+            val batteryMaxWorkingElectricityView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxWorkingElectricityTxt)
+            batteryMaxWorkingElectricityView.text = "..."
+            val batteryMaxPerformanceView = findViewById<TextView>(R.id.batteryDetailInfoSnapShotOverviewMaxPerfTxt)
+            batteryMaxPerformanceView.text = "..."
+            popupWindow.dismiss()
+        }
+
+        popupWindowCancelBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowCancelBtnView.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        popupWindow.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+        popupWindow.animationStyle = R.style.popupAnim
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0)
+    }
+
+    fun batteryCloseDischargePort(view: View) {
+        if (view.id != R.id.batteryControlTurnOffBtn)
+            return
+
+        val popupWindowView = LayoutInflater.from(this).inflate(R.layout.activity_data_battery_control_popup_window, null)
+        val popupWindowLayout = popupWindowView.findViewById<ConstraintLayout>(R.id.popupWindowLayout)
+        val popupWindowConfirmBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowConfirmBtn)
+        val popupWindowCancelBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowCancelBtn)
+        val popupWindowTitleTextView = popupWindowView.findViewById<TextView>(R.id.popupWindowContent)
+        val popupWindow = PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT, true)
+
+        popupWindowConfirmBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowConfirmBtnView.setOnClickListener {
+            //TODO: close discharge port
+            popupWindow.dismiss()
+            Toast.makeText(this, "关闭成功", Toast.LENGTH_SHORT).show()
+        }
+
+        popupWindowCancelBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowCancelBtnView.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        popupWindowTitleTextView.text = "是否确认关闭放电端口？"
+        popupWindow.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+        popupWindow.animationStyle = R.style.popupAnim
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0)
+    }
+
+    fun batteryOpenDischargePort(view: View) {
+        if (view.id != R.id.batteryControlTurnOnBtn)
+            return
+
+        val popupWindowView = LayoutInflater.from(this).inflate(R.layout.activity_data_battery_control_popup_window, null)
+        val popupWindowLayout = popupWindowView.findViewById<ConstraintLayout>(R.id.popupWindowLayout)
+        val popupWindowConfirmBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowConfirmBtn)
+        val popupWindowCancelBtnView = popupWindowView.findViewById<Button>(R.id.popupWindowCancelBtn)
+        val popupWindowTitleTextView = popupWindowView.findViewById<TextView>(R.id.popupWindowContent)
+        val popupWindow = PopupWindow(popupWindowView, ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT, true)
+
+        popupWindowConfirmBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowConfirmBtnView.setOnClickListener {
+            //TODO: close discharge port
+            popupWindow.dismiss()
+            Toast.makeText(this, "打开成功", Toast.LENGTH_SHORT).show()
+        }
+
+        popupWindowCancelBtnView.layoutParams.width = popupWindowLayout.layoutParams.width / 2
+        popupWindowCancelBtnView.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        popupWindowTitleTextView.text = "是否确认打开放电端口？"
+        popupWindow.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+        popupWindow.animationStyle = R.style.popupAnim
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0)
+    }
+
     private fun blueToothPageUpdate(pageTitle: ActivityHome.PageTitle) {
         when (pageTitle) {
             ActivityHome.PageTitle.HOME->{
@@ -603,10 +910,10 @@ class ActivityData : AppCompatActivity() {
                 if (demoDeviceShowFlag) {
                     for (cnt in (0..(0..10).random())) {
                         batteryInfoWarningsList.add(batteryWarningsTable[batteryWarningsTable.indices.random()])
-                        ActivityInfo.Utility.setListViewHeightBasedOnChildren(batteryDetailInfoWarningListView)
+                        setListViewHeightBasedOnChildren(batteryDetailInfoWarningListView)
                     }
                     val batteryDetailInfoWarningCntView = findViewById<TextView>(R.id.batteryDetailInfoWarningCnt)
-                    batteryDetailInfoWarningCntView.text = "[${batteryInfoWarningsList.size}]"
+                    batteryDetailInfoWarningCntView.text = "[%d]".format(batteryInfoWarningsList.size)
                 }
             }
 
@@ -621,9 +928,51 @@ class ActivityData : AppCompatActivity() {
                         batteryTemperatureUpdateTask.add(BatteryTemperatureUpdateTimerTask(mHandler, num))
                         batteryTemperatureUpdateTimer.last().schedule(batteryTemperatureUpdateTask.last(), 0, 1000)
                         batteryInfoTemperatureList.add(Temperature("传感器 $num", 0F))
-                        ActivityInfo.Utility.setListViewHeightBasedOnChildren(batteryDetailInfoTemperatureListView)
                     }
+                    setListViewHeightBasedOnChildren(batteryDetailInfoTemperatureListView)
                 }
+            }
+
+            fun bluetoothDataBatteryDetailInfoBatteryUnitInit() {
+                batteryInfoBatteryUnitAdapter = BatteryUnitMessageAdapter(batteryInfoBatteryUnitList, this)
+                val batteryDetailInfoBatteryUnitListView = findViewById<ListView>(R.id.batteryDetailInfoVoltageList)
+                batteryDetailInfoBatteryUnitListView.adapter = batteryInfoBatteryUnitAdapter
+
+                if (demoDeviceShowFlag) {
+                    for (num in (0..(0..20).random())) {
+                        batteryBatteryUnitVoltageUpdateTimer.add(Timer("battery unit voltage $num update Timer"))
+                        batteryBatteryUnitVoltageUpdateTask.add(BatteryBatteryUnitUpdateTimerTask(mHandler, num))
+                        batteryBatteryUnitVoltageUpdateTimer.last().schedule(batteryBatteryUnitVoltageUpdateTask.last(), 0, 1000)
+                        batteryInfoBatteryUnitList.add(BatteryUnit(0F, false))
+                    }
+                    setListViewHeightBasedOnChildren(batteryDetailInfoBatteryUnitListView)
+                }
+            }
+
+            fun bluetoothDataBatteryDetailInfoBMSInfoErrorInit() {
+                batteryInfoBMSInfoErrorAdapter = BMSInfoErrorMessageAdapter(batteryInfoBMSInfoErrorList, this)
+                val batteryDetailInfoBMSInfoListView = findViewById<ListView>(R.id.batteryDetailInfoBMSInfoList)
+                batteryDetailInfoBMSInfoListView.adapter = batteryInfoBMSInfoErrorAdapter
+                val batteryInfoBMSInfoErrorArray = arrayOf(
+                    BMSInfoError("生产商", "WM-Motor"),
+                    BMSInfoError("固件版本", "V1.0"),
+                    BMSInfoError("设备名称", "Virtual BMS device"),
+                    BMSInfoError("生产日期", getDate("date")),
+                    BMSInfoError("电池循环次数", "0"),
+                    BMSInfoError("充电电流过大", "0"),
+                    BMSInfoError("加载时温度过低", "0"),
+                    BMSInfoError("加载过程中温度过高", "0"),
+                    BMSInfoError("卸货时温度过低", "0"),
+                    BMSInfoError("卸货时温度过高", "0"),
+                    BMSInfoError("放电电流过大", "0"),
+                    BMSInfoError("电池单位欠压", "0"),
+                    BMSInfoError("电池单位过压", "0"),
+                    BMSInfoError("电池欠压", "0"),
+                    BMSInfoError("电池过压", "0"),
+                    BMSInfoError("短路", "0"))
+
+                batteryInfoBMSInfoErrorList.addAll(batteryInfoBMSInfoErrorArray)
+                setListViewHeightBasedOnChildren(batteryDetailInfoBMSInfoListView)
             }
 
             val batteryDetailInfoScrollView = findViewById<ScrollView>(R.id.batteryDetailInfoScroll)
@@ -643,6 +992,8 @@ class ActivityData : AppCompatActivity() {
 
             bluetoothDataBatteryDetailInfoWarningsInit()
             bluetoothDataBatteryDetailInfoTemperatureInit()
+            bluetoothDataBatteryDetailInfoBatteryUnitInit()
+            bluetoothDataBatteryDetailInfoBMSInfoErrorInit()
         }
         secondUpdateTimerTask = SecondUpdateTimeTimerTask(mHandler)
         secondUpdateTimer.schedule(secondUpdateTimerTask, 0, 1000)
@@ -671,6 +1022,13 @@ class ActivityData : AppCompatActivity() {
             }
         }
         bluetoothDataBatteryDetailInfoInit()
+
+        findViewById<Button>(R.id.batteryControlTurnOffBtn).setOnClickListener {
+            batteryCloseDischargePort(it)
+        }
+        findViewById<Button>(R.id.batteryControlTurnOnBtn).setOnClickListener {
+            batteryOpenDischargePort(it)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
