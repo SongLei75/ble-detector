@@ -887,7 +887,7 @@ class ActivityData : AppCompatActivity() {
                 val titleBarLeftBtn = titleBar.findViewById<Button>(R.id.bt_left)
                 titleBarText.text = this.intent.getStringExtra("device name")
                 demoDeviceShowFlag = this.intent.getBooleanExtra("demo device show flag", false)
-                titleBarLeftBtn.text = "设备"
+                titleBarLeftBtn.text = "〈设备"
                 titleBarLeftBtn.setTextColor(Color.parseColor("#000000"))
                 titleBarLeftBtn.setOnClickListener {
                     blueToothPageUpdate(ActivityHome.PageTitle.HOME)
